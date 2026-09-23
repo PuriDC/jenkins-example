@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     stages {
-        stage('Hello') {
+        stage('Checkout') {
             steps {
-                echo 'Hello Jenkins'
+                checkout changelog: false, poll: false, scm: scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/PuriDC/jenkins-example.git']])
             }
         }
     }

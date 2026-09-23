@@ -14,10 +14,46 @@ pipeline {
             }
         }
 
+        stage("SonarQube scan") {
+            node {
+                withSonarQubeEnv('My SonarQube Server') {
+                    sh 'mvn clean package sonar:sonar'
+                }
+            }
+        }
+    }
+    
+    stages {
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${NEXUS_URL}/${IMAGE_NAME}:${IMAGE_TAG} ."
             }
+        }
+
+        stage('Login to Nexus') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USERNAME',
+                        passwordVariable: 'NEXUS_PASSWORD'
+                    )
+                ]) {
+                    echo ${NEXUS_PASSWORD} | docker login ${NEXUS_URL} --username "$NEXUS_USERNAME" --password-stdin
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                docker push ${NEXUS_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+            }
+        }
+    } 
+
+    post {
+        always {
+            docker logout ${NEXUS_URL} || true
         }
     }
 }

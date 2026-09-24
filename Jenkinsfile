@@ -41,7 +41,7 @@ pipeline {
                         passwordVariable: 'NEXUS_PASSWORD'
                     )
                 ]) {
-                    sh "echo ${NEXUS_PASSWORD} | docker login ${NEXUS_URL} --username '$NEXUS_USERNAME' --password-stdin"
+                    sh 'echo "$NEXUS_PASSWORD" | docker login ' + NEXUS_URL + ' --username "$NEXUS_USERNAME" --password-stdin'
                 }
             }
         }

@@ -10,20 +10,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout changelog: false, poll: false, scm: scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/PuriDC/jenkins-example.git']])
+                checkout changelog: false, poll: false, scm: scmGit(
+                    branches: [[name: '*/main']], 
+                    extensions: [], 
+                    userRemoteConfigs: [[url: 'https://github.com/PuriDC/jenkins-example.git']]
+                )
             }
         }
 
         stage("SonarQube scan") {
-            node {
+            steps {
                 withSonarQubeEnv('My SonarQube Server') {
                     sh 'mvn clean package sonar:sonar'
                 }
             }
         }
-    }
-    
-    stages {
+
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${NEXUS_URL}/${IMAGE_NAME}:${IMAGE_TAG} ."
@@ -39,7 +41,7 @@ pipeline {
                         passwordVariable: 'NEXUS_PASSWORD'
                     )
                 ]) {
-                    sh "echo ${NEXUS_PASSWORD} | docker login ${NEXUS_URL} --username \"$NEXUS_USERNAME\" --password-stdin"
+                    sh "echo ${NEXUS_PASSWORD} | docker login ${NEXUS_URL} --username '$NEXUS_USERNAME' --password-stdin"
                 }
             }
         }

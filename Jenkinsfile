@@ -13,6 +13,13 @@ pipeline {
                 checkout changelog: false, poll: false, scm: scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/PuriDC/jenkins-example']])
             }
         }
+
+        stage('SonarQube Analysis') {
+            def scannerHome = tool 'sonarqube-scanner-8.1';
+            withSonarQubeEnv() {
+                sh "${scannerHome}/bin/sonar-scanner"
+            }
+        }
         
         stage('Build docker image') {
             steps {

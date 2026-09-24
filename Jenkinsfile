@@ -10,48 +10,36 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout changelog: false, poll: false, scm: scmGit(
-                    branches: [[name: '*/main']], 
-                    extensions: [], 
-                    userRemoteConfigs: [[url: 'https://github.com/PuriDC/jenkins-example.git']]
-                )
+                checkout changelog: false, poll: false, scm: scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/PuriDC/jenkins-example']])
+            }
+        }
+        
+        stage('Build docker image') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
             }
         }
 
-        stage("SonarQube scan") {
-            steps {
-                withSonarQubeEnv('My SonarQube Server') {
-                    sh 'mvn clean package sonar:sonar'
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh "docker build -t ${NEXUS_URL}/${IMAGE_NAME}:${IMAGE_TAG} ."
-            }
-        }
-
-        stage('Login to Docker hub') {
-            steps {
+        stage('Login to Docker Hub'){
+            steps{
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'docker-hub-credentials',
-                        usernameVariable: 'DOCKER_HUB_USERNAME',
-                        passwordVariable: 'DOCKER_HUB_PASSWORD'
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_PASSWORD'
                     )
                 ]) {
-                    sh 'echo "$DOCKER_HUB_PASSWORD" | docker login --username "$DOCKER_HUB_USERNAME" --password-stdin'
+                    sh "echo ${DOCKERHUB_PASSWORD} | docker login --username '${DOCKERHUB_USERNAME}' --password-stdin"
                 }
             }
-        }
+        } 
 
-        stage('Push Image') {
+        stage('Push Image'){
             steps {
                 sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
             }
-        }
-    } 
+        }  
+    }
 
     post {
         always {

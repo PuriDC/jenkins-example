@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         NEXUS_URL = "nexus:8082"
-        IMAGE_NAME = "helloapp"
+        IMAGE_NAME = "PuriDC/helloapp"
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
@@ -39,21 +39,21 @@ pipeline {
                         passwordVariable: 'NEXUS_PASSWORD'
                     )
                 ]) {
-                    echo ${NEXUS_PASSWORD} | docker login ${NEXUS_URL} --username "$NEXUS_USERNAME" --password-stdin
+                    sh "echo ${NEXUS_PASSWORD} | docker login ${NEXUS_URL} --username \"$NEXUS_USERNAME\" --password-stdin"
                 }
             }
         }
 
         stage('Push Image') {
             steps {
-                docker push ${NEXUS_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+                sh "docker push ${NEXUS_URL}/${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
     } 
 
     post {
         always {
-            docker logout ${NEXUS_URL} || true
+            sh "docker logout ${NEXUS_URL} || true"
         }
     }
 }
